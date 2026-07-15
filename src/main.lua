@@ -8,9 +8,35 @@ local gamestate = {}
 local gs = {}
 
 local SCREEN = "title"
+local blink_time = 0
+local cam_x, cam_y = 0, 0
+local vw, vh = 0, 0
+
+local function update_camera()
+  if not cursor.current or not gs.tiles then return end
+  local t = gs.tiles[cursor.current]
+  if not t or t.removed then return end
+  local tx, ty = board.tile_position(t)
+
+  cam_x = tx - vw / 2 + conf.TILE_W / 2
+  cam_y = ty - vh / 2 + conf.TILE_H / 2
+
+  local board_w = 14 * conf.TILE_W + 48
+  local board_h = 6 * conf.TILE_H + 48
+  cam_x = math.max(0, math.min(cam_x, board_w - vw))
+  cam_y = math.max(0, math.min(cam_y, board_h - vh))
+end
+
+local cam_x, cam_y = 0, 0
+local vw, vh = 0, 0
 
 function love.load()
   math.randomseed(os.time())
+
+  vw = love.graphics.getWidth()
+  vh = love.graphics.getHeight()
+  render.vw = vw
+  render.vh = vh
 
   render.load_assets()
   render.make_font()
@@ -22,6 +48,7 @@ function love.load()
   gs.status_timer = 0
   gs.game_over = false
   gs.won = false
+  blink_time = 0
 end
 
 function new_game()
@@ -38,11 +65,17 @@ function new_game()
 end
 
 function love.update(dt)
+  blink_time = blink_time + dt
+
   if gs.status_timer > 0 then
     gs.status_timer = gs.status_timer - dt
     if gs.status_timer <= 0 then
       gs.status_msg = ""
     end
+  end
+
+  if SCREEN == "game" then
+    update_camera()
   end
 end
 
@@ -51,21 +84,27 @@ function love.draw()
   love.graphics.setBackgroundColor(20, 30, 70, 255)
 
   if SCREEN == "title" then
-    render.draw_center_text("MAHJONG SOLITAIRE", conf.SCREEN_H / 2 - 80, 255, 220, 80)
-    render.draw_center_text("Press SPACE or A to start", conf.SCREEN_H / 2 + 40, 200, 200, 200)
+    render.draw_center_text_at(vw, "MAHJONG SOLITAIRE", vh / 2 - 40, 255, 220, 80)
+    render.draw_center_text_at(vw, "Press SPACE or A to start", vh / 2 + 20, 200, 200, 200)
 
-    local blink = math.floor(love.timer.getTime() * 2) % 2 == 0
+    local blink = math.floor(blink_time * 2) % 2 == 0
     if blink then
-      render.draw_center_text("H - Help  S - Shuffle  Z - Undo", conf.SCREEN_H / 2 + 80, 120, 120, 120)
+      render.draw_center_text_at(vw, "H - Help  S - Shuffle  Z - Undo", vh / 2 + 50, 120, 120, 120)
     end
     return
   end
 
+  love.graphics.push()
+  love.graphics.translate(-cam_x, -cam_y)
+
   if gs.tiles then
     local sel = (cursor.state == "one_selected" and cursor.selected) or nil
     render.draw_board(gs.tiles, cursor.current, sel)
-    render.draw_hud(gs.tiles, gs.pairs_removed)
   end
+
+  love.graphics.pop()
+
+  render.draw_hud(gs.tiles, gs.pairs_removed)
 
   if gs.status_msg and gs.status_timer > 0 then
     render.draw_status(gs.status_msg)
@@ -174,12 +213,12 @@ end
 
 function love.gamepadpressed(port, button)
   local key
-  if button == conf.GPAD.up then key = conf.KEYS.up
-  elseif button == conf.GPAD.down then key = conf.KEYS.down
-  elseif button == conf.GPAD.left then key = conf.KEYS.left
-  elseif button == conf.GPAD.right then key = conf.KEYS.right
-  elseif button == conf.GPAD.a then key = conf.KEYS.select
-  elseif button == conf.GPAD.b then key = conf.KEYS.cancel
+  if button == "up" then key = conf.KEYS.up
+  elseif button == "down" then key = conf.KEYS.down
+  elseif button == "left" then key = conf.KEYS.left
+  elseif button == "right" then key = conf.KEYS.right
+  elseif button == "a" then key = conf.KEYS.select
+  elseif button == "b" then key = conf.KEYS.cancel
   end
   if key then love.keypressed(key, 0, false) end
 end

@@ -15,6 +15,8 @@ M.BOARD_CENTER_Y = M.SCREEN_H / 2 + 10
 
 M.NUM_TILES = 144
 
+M.SCALE = 1
+
 M.TILE_TYPES = {}
 local t = 0
 for i = 1, 9 do t = t + 1; M.TILE_TYPES[t] = "bamboo_"..i end
@@ -61,7 +63,5 @@ M.GPAD = {
 }
 
 M.MAX_LAYERS = 5
-
-M.BOARD_SCALE = 0.78
 
 return M
