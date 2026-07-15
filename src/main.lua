@@ -7,6 +7,8 @@ local render = require("render")
 local gamestate = {}
 local gs = {}
 
+local SCREEN = "title"
+
 function love.load()
   math.randomseed(os.time())
 
@@ -20,8 +22,6 @@ function love.load()
   gs.status_timer = 0
   gs.game_over = false
   gs.won = false
-
-  new_game()
 end
 
 function new_game()
@@ -48,22 +48,23 @@ end
 
 function love.draw()
   love.graphics.clear()
-
   love.graphics.setBackgroundColor(20, 30, 70, 255)
 
-  if gs.tiles then
-    render.draw_board(gs.tiles, cursor.current)
-    render.draw_hud(gs.tiles, gs.pairs_removed)
+  if SCREEN == "title" then
+    render.draw_center_text("MAHJONG SOLITAIRE", conf.SCREEN_H / 2 - 80, 255, 220, 80)
+    render.draw_center_text("Press SPACE or A to start", conf.SCREEN_H / 2 + 40, 200, 200, 200)
 
-    if cursor.state == "one_selected" and cursor.selected then
-      local t = gs.tiles[cursor.selected]
-      if t then
-        local x, y = board.tile_position(t)
-        love.graphics.setColor(0, 255, 0, 120)
-        love.graphics.rectangle("fill", x, y, conf.TILE_W, conf.TILE_H)
-        love.graphics.setColor(255, 255, 255, 255)
-      end
+    local blink = math.floor(love.timer.getTime() * 2) % 2 == 0
+    if blink then
+      render.draw_center_text("H - Help  S - Shuffle  Z - Undo", conf.SCREEN_H / 2 + 80, 120, 120, 120)
     end
+    return
+  end
+
+  if gs.tiles then
+    local sel = (cursor.state == "one_selected" and cursor.selected) or nil
+    render.draw_board(gs.tiles, cursor.current, sel)
+    render.draw_hud(gs.tiles, gs.pairs_removed)
   end
 
   if gs.status_msg and gs.status_timer > 0 then
@@ -81,6 +82,14 @@ function set_status(msg, duration)
 end
 
 function love.keypressed(key, scode, isrepeat)
+  if SCREEN == "title" then
+    if key == conf.KEYS.select or key == conf.KEYS.menu then
+      SCREEN = "game"
+      new_game()
+    end
+    return
+  end
+
   if gs.game_over then
     if key == conf.KEYS.select or key == conf.KEYS.menu then
       new_game()

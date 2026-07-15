@@ -34,7 +34,7 @@ for _, tt in ipairs(M.TILE_TYPES) do
 end
 
 M.SUITE_COUNT = {
-  bamboo = 4, dot = 4, character = 4,
+  bamboo = 4, dot = 4, char = 4,
   wind = 4, dragon = 4,
   season = 1, flower = 1
 }
@@ -61,5 +61,7 @@ M.GPAD = {
 }
 
 M.MAX_LAYERS = 5
+
+M.BOARD_SCALE = 0.78
 
 return M

@@ -109,7 +109,61 @@ function M.make_font()
   love.graphics.setFont(M.font)
 end
 
-function M.draw_board(tiles, highlight_idx)
+function M.draw_board_background()
+  local s = conf.BOARD_SCALE
+  local tw = 14 * conf.TILE_W
+  local th = 6 * conf.TILE_H
+  local bx = conf.BOARD_CENTER_X - tw / 2
+  local by = conf.BOARD_CENTER_Y - th / 2
+  local pad = 24
+
+  love.graphics.setColor(60, 40, 20, 255)
+  love.graphics.rectangle("fill", (bx - pad) * s, (by - pad) * s,
+    (tw + pad * 2) * s, (th + pad * 2) * s, 8 * s, 8 * s)
+
+  love.graphics.setColor(100, 70, 30, 255)
+  love.graphics.rectangle("fill", (bx - pad + 4) * s, (by - pad + 4) * s,
+    (tw + pad * 2 - 8) * s, (th + pad * 2 - 8) * s, 6 * s, 6 * s)
+
+  love.graphics.setColor(40, 25, 10, 255)
+  love.graphics.setLineWidth(2 * s)
+  love.graphics.rectangle("line", (bx - pad) * s, (by - pad) * s,
+    (tw + pad * 2) * s, (th + pad * 2) * s, 8 * s, 8 * s)
+  love.graphics.setLineWidth(1)
+end
+
+function M.draw_layer_cutouts(tiles)
+  local above = {}
+  for i, t in ipairs(tiles) do
+    if not t.removed then
+      for j, other in ipairs(tiles) do
+        if not other.removed and other.layer > t.layer and other.row == t.row and other.col == t.col then
+          above[i] = true
+          break
+        end
+      end
+    end
+  end
+
+  for i, t in ipairs(tiles) do
+    if not t.removed and above[i] then
+      local x, y = board.tile_position(t)
+      love.graphics.setColor(15, 20, 50, 200)
+      love.graphics.rectangle("fill", x + 4, y + 4, conf.TILE_W - 8, conf.TILE_H - 8, 4, 4)
+    end
+  end
+end
+
+function M.draw_board(tiles, highlight_idx, selected_idx)
+  local s = conf.BOARD_SCALE
+  love.graphics.push()
+  love.graphics.translate(conf.SCREEN_W / 2, conf.SCREEN_H / 2)
+  love.graphics.scale(s)
+  love.graphics.translate(-conf.SCREEN_W / 2, -conf.SCREEN_H / 2)
+
+  M.draw_board_background()
+  M.draw_layer_cutouts(tiles)
+
   for l = 1, conf.MAX_LAYERS do
     for i, t in ipairs(tiles) do
       if not t.removed and t.layer == l then
@@ -125,12 +179,19 @@ function M.draw_board(tiles, highlight_idx)
         love.graphics.draw(M.tileset, M.quads[t.type], x, y)
 
         if i == highlight_idx then
-          love.graphics.setColor(255, 255, 0, 160)
+          love.graphics.setColor(255, 255, 0, 120)
+          love.graphics.rectangle("fill", x, y, conf.TILE_W, conf.TILE_H)
+        end
+
+        if i == selected_idx then
+          love.graphics.setColor(0, 255, 0, 160)
           love.graphics.rectangle("fill", x, y, conf.TILE_W, conf.TILE_H)
         end
       end
     end
   end
+
+  love.graphics.pop()
   love.graphics.setColor(255, 255, 255, 255)
 end
 
