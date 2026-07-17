@@ -9,13 +9,25 @@ M.state = "idle"
 function M.init(tiles)
   M.tiles = tiles
   for i, t in ipairs(tiles) do
-    if not t.removed then
+    if board.is_free(tiles, i) then
       M.current = i
       break
     end
   end
   M.selected = nil
   M.state = "idle"
+end
+
+function M.ensure_current()
+  if M.current and board.is_free(M.tiles, M.current) then return end
+
+  for i, t in ipairs(M.tiles) do
+    if board.is_free(M.tiles, i) then
+      M.current = i
+      return
+    end
+  end
+  M.current = nil
 end
 
 function M.move(direction)

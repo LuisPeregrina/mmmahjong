@@ -10,7 +10,12 @@ ROOT = Path(__file__).resolve().parent.parent
 OUT_ZIP = ROOT / "out" / "mahjong.zip"
 SRC = ROOT / "src"
 GENERATED_DIR = ROOT / "assets" / "generated"
-ASSETS = [GENERATED_DIR / "tiles.png"]
+ASSETS = [
+    GENERATED_DIR / "tiles.png",
+    GENERATED_DIR / "font.png",
+    ROOT / "assets" / "music" / "Lotus Pond - Loop.ogg",
+    ROOT / "assets" / "music" / "Dragon Dance - Loop.ogg",
+]
 
 BUILD_DIR = ROOT / "out" / "build"
 if BUILD_DIR.exists():
@@ -26,8 +31,9 @@ for fname in SRC.iterdir():
 for asset in ASSETS:
     if not asset.exists():
         print(f"Generating missing asset: {asset.relative_to(ROOT)}")
-        rasterizer = ROOT / "tools" / "rasterize_tiles.py"
-        subprocess.run([sys.executable, str(rasterizer)], cwd=ROOT, check=True)
+        if asset.parent == GENERATED_DIR:
+            generator = ROOT / ("tools/gen_font_image.py" if asset.name == "font.png" else "tools/rasterize_tiles.py")
+            subprocess.run([sys.executable, str(generator)], cwd=ROOT, check=True)
 
     if not asset.exists():
         print(f"Skip missing asset: {asset.relative_to(ROOT)}")
@@ -54,7 +60,3 @@ print(f"Package: {OUT_ZIP.relative_to(ROOT)} ({size} bytes)")
 with zipfile.ZipFile(OUT_ZIP, "r") as zf:
     for info in zf.infolist():
         print(f"  {info.filename}  ({info.file_size} bytes, compressed {info.compress_size})")
-
-for cleanup_path in [GENERATED_DIR / "tiles.png", GENERATED_DIR / "tiles.csv"]:
-    if cleanup_path.exists():
-        cleanup_path.unlink()

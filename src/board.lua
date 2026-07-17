@@ -219,7 +219,7 @@ function M.get_nearest_tile(tiles, current_idx, direction)
 
   local candidates = {}
   for i, t in ipairs(tiles) do
-    if not t.removed and i ~= current_idx then
+    if i ~= current_idx and M.is_free(tiles, i) then
       local tx, ty = M.tile_position(t)
       local dx = tx - cx
       local dy = ty - cy

@@ -10,7 +10,6 @@ from pathlib import Path
 
 RETROARCH_PATH = "/Applications/RetroArch.app/Contents/MacOS/RetroArch"
 CORE_PATH = Path("~/Library/Application Support/RetroArch/cores/lutro_libretro.dylib").expanduser()
-SRC_PATH = "./src"
 LOG_PATH = "retroarch.log"
 
 
@@ -33,7 +32,7 @@ def main() -> int:
     else:
         print(f"rasterize_tiles.py not found at {rasterize}", file=sys.stderr)
 
-    command = [RETROARCH_PATH, "-L", str(CORE_PATH), SRC_PATH, "-v"]
+    command = [RETROARCH_PATH, "-L", str(CORE_PATH), str(repo_root), "-v"]
 
     with log_path.open("w", encoding="utf-8") as log_file:
         log_file.write(f"\n=== Launching RetroArch at {datetime.now().isoformat()} ===\n")
