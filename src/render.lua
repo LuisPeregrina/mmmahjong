@@ -21,7 +21,7 @@ function M.load_assets()
 end
 
 function M.make_font()
-  local gstr = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@,.;/:-"
+  local gstr = " ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@,.;/:-"
   M.font_img = lutro.graphics.newImage("assets/generated/font.png")
   M.font = lutro.graphics.newImageFont(M.font_img, gstr, 1)
   lutro.graphics.setFont(M.font)

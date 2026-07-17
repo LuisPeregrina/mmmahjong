@@ -15,11 +15,23 @@ local vw, vh = 0, 0
 local CAM_SPEED = 6
 local music = {}
 local music_playing = nil
+local sfx_cursor = nil
 
 local function play_music(name)
+  print("play_music: '" .. tostring(name) .. "'")
+  if music_playing and music_playing ~= name then
+    local prev = music[music_playing]
+    if prev then
+      lutro.audio.stop(prev)
+    end
+  end
   local src = music[name]
-  if src and type(src) == "userdata" then
-    pcall(lutro.audio.play, src)
+  if src then
+    print("play_music: found src, calling lutro.audio.play()")
+    lutro.audio.play(src)
+    music_playing = name
+  else
+    print("play_music: no src found for '" .. tostring(name) .. "'")
   end
 end
 
@@ -67,14 +79,10 @@ function lutro.load()
   render.load_assets()
   render.make_font()
   lutro.audio.setVolume(1)
-  local ok1, src1 = pcall(lutro.audio.newSource, "assets/music/Lotus Pond - Loop.ogg", "stream")
-  local ok2, src2 = pcall(lutro.audio.newSource, "assets/music/Dragon Dance - Loop.ogg", "stream")
-  music.title = ok1 and type(src1) == "userdata" and src1 or nil
-  music.game = ok2 and type(src2) == "userdata" and src2 or nil
-  if music.title then
-    pcall(music.title.setVolume, music.title, 1)
-    lutro.audio.play(music.title)
-  end
+  music.title = lutro.audio.newSource("assets/music/Lotus Pond - Loop.ogg", "stream")
+  music.game = lutro.audio.newSource("assets/music/Dragon Dance - Loop.ogg", "stream")
+  sfx_cursor = lutro.audio.newSource("assets/sounds/ceramic.wav", "static")
+  play_music("title")
 
   gs.tiles = nil
   gs.pairs_removed = 0
@@ -117,8 +125,11 @@ function lutro.update(dt)
 end
 
 function lutro.draw()
-  lutro.graphics.clear()
+  -- lutro.graphics.clear()
   lutro.graphics.setBackgroundColor(20, 30, 70, 255)
+  
+  lutro.graphics.print("¡Hola Lutro!", 100, 100)
+
 
   if SCREEN == "title" then
     render.draw_center_text_at(vw, "MAHJONG SOLITAIRE", vh / 2 - 40, 255, 220, 80)
@@ -174,10 +185,10 @@ function lutro.keypressed(key, scode, isrepeat)
     return
   end
 
-  if key == conf.KEYS.up then cursor.move("up")
-  elseif key == conf.KEYS.down then cursor.move("down")
-  elseif key == conf.KEYS.left then cursor.move("left")
-  elseif key == conf.KEYS.right then cursor.move("right")
+  if key == conf.KEYS.up then cursor.move("up"); lutro.audio.play(sfx_cursor)
+  elseif key == conf.KEYS.down then cursor.move("down"); lutro.audio.play(sfx_cursor)
+  elseif key == conf.KEYS.left then cursor.move("left"); lutro.audio.play(sfx_cursor)
+  elseif key == conf.KEYS.right then cursor.move("right"); lutro.audio.play(sfx_cursor)
   elseif key == conf.KEYS.select then
     local result, status = cursor.select()
     if status == "match" then

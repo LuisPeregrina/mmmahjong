@@ -106,6 +106,9 @@ Common LÖVE2D APIs that do NOT exist in Lutro, plus notable behavioral differen
 | `Font:setFilter` | Works | Stub |
 | `newImageFont` spacing | Default 0 | Default 1 |
 | Audio formats | Many | Only .wav and .ogg |
+| Ogg sample rate | Any | **44100 Hz only** (vorbis decoder rejects other rates) |
+| Ogg channels | Any | Mono or stereo only |
+| Wav sample rate | Any | **44100 Hz** required (non-44100 may play at wrong pitch/speed) |
 | Screen size | Configurable window | Libretro viewport |
 | Input | keyboard/mouse/joystick/touch | keyboard + joystick only |
 | Savestates | N/A | serialize/unserialize callbacks |

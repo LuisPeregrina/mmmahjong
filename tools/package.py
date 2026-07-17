@@ -15,6 +15,7 @@ ASSETS = [
     GENERATED_DIR / "font.png",
     ROOT / "assets" / "music" / "Lotus Pond - Loop.ogg",
     ROOT / "assets" / "music" / "Dragon Dance - Loop.ogg",
+    ROOT / "assets" / "sounds" / "ceramic.wav",
 ]
 
 BUILD_DIR = ROOT / "out" / "build"
