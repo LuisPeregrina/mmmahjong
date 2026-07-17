@@ -225,10 +225,10 @@ function M.get_nearest_tile(tiles, current_idx, direction)
       local dy = ty - cy
 
       local valid = false
-      if direction == "left" and dx < -10 and math.abs(dy) < math.abs(dx) then valid = true end
-      if direction == "right" and dx > 10 and math.abs(dy) < dx then valid = true end
-      if direction == "up" and dy < -10 and math.abs(dx) < math.abs(dy) then valid = true end
-      if direction == "down" and dy > 10 and math.abs(dx) < dy then valid = true end
+      if direction == "left" and dx < 0 then valid = true end
+      if direction == "right" and dx > 0 then valid = true end
+      if direction == "up" and dy < 0 then valid = true end
+      if direction == "down" and dy > 0 then valid = true end
 
       if valid then
         local dist = math.sqrt(dx * dx + dy * dy * 0.5 + (t.layer - current.layer) * 20)

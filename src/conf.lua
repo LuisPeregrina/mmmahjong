@@ -19,15 +19,29 @@ M.SCALE = 1
 
 M.TILE_TYPES = {}
 local t = 0
-for i = 1, 9 do t = t + 1; M.TILE_TYPES[t] = "bamboo_"..i end
-for i = 1, 9 do t = t + 1; M.TILE_TYPES[t] = "dot_"..i end
-for i = 1, 9 do t = t + 1; M.TILE_TYPES[t] = "char_"..i end
-local winds = {"east","south","west","north"}
-for _, w in ipairs(winds) do t = t + 1; M.TILE_TYPES[t] = "wind_"..w end
-local dragons = {"red","green","white"}
-for _, d in ipairs(dragons) do t = t + 1; M.TILE_TYPES[t] = "dragon_"..d end
-for i = 1, 4 do t = t + 1; M.TILE_TYPES[t] = "season_"..i end
-for i = 1, 4 do t = t + 1; M.TILE_TYPES[t] = "flower_"..i end
+for i = 1, 9 do
+  t = t + 1; M.TILE_TYPES[t] = "bamboo_" .. i
+end
+for i = 1, 9 do
+  t = t + 1; M.TILE_TYPES[t] = "dot_" .. i
+end
+for i = 1, 9 do
+  t = t + 1; M.TILE_TYPES[t] = "char_" .. i
+end
+local winds = { "east", "south", "west", "north" }
+for _, w in ipairs(winds) do
+  t = t + 1; M.TILE_TYPES[t] = "wind_" .. w
+end
+local dragons = { "red", "green", "white" }
+for _, d in ipairs(dragons) do
+  t = t + 1; M.TILE_TYPES[t] = "dragon_" .. d
+end
+for i = 1, 4 do
+  t = t + 1; M.TILE_TYPES[t] = "season_" .. i
+end
+for i = 1, 4 do
+  t = t + 1; M.TILE_TYPES[t] = "flower_" .. i
+end
 
 M.TYPE_SUITE = {}
 for _, tt in ipairs(M.TILE_TYPES) do
@@ -36,9 +50,13 @@ for _, tt in ipairs(M.TILE_TYPES) do
 end
 
 M.SUITE_COUNT = {
-  bamboo = 4, dot = 4, char = 4,
-  wind = 4, dragon = 4,
-  season = 1, flower = 1
+  bamboo = 4,
+  dot = 4,
+  char = 4,
+  wind = 4,
+  dragon = 4,
+  season = 1,
+  flower = 1
 }
 
 M.DECK = {}
@@ -52,14 +70,25 @@ for _, tt in ipairs(M.TILE_TYPES) do
 end
 
 M.KEYS = {
-  up = "up", down = "down", left = "left", right = "right",
-  select = "space", cancel = "backspace",
-  undo = "z", hint = "h", shuffle = "s", menu = "escape",
+  up = "up",
+  down = "down",
+  left = "left",
+  right = "right",
+  select = "x",
+  cancel = "z",
+  undo = "u",
+  hint = "h",
+  shuffle = "s",
+  menu = "escape",
 }
 
 M.GPAD = {
-  up = 5, down = 6, left = 7, right = 8,
-  a = 9, b = 1,
+  up = RETRO_DEVICE_ID_JOYPAD_UP,
+  down = RETRO_DEVICE_ID_JOYPAD_DOWN,
+  left = RETRO_DEVICE_ID_JOYPAD_LEFT,
+  right = RETRO_DEVICE_ID_JOYPAD_RIGHT,
+  a = RETRO_DEVICE_ID_JOYPAD_A,
+  b = RETRO_DEVICE_ID_JOYPAD_B,
 }
 
 M.MAX_LAYERS = 5

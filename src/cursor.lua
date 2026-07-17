@@ -21,13 +21,25 @@ end
 function M.ensure_current()
   if M.current and board.is_free(M.tiles, M.current) then return end
 
+  local best, best_dist
+  local cx, cy
+  if M.current and M.tiles[M.current] then
+    cx, cy = board.tile_position(M.tiles[M.current])
+  end
   for i, t in ipairs(M.tiles) do
     if board.is_free(M.tiles, i) then
-      M.current = i
-      return
+      if not cx then
+        M.current = i
+        return
+      end
+      local tx, ty = board.tile_position(t)
+      local d = (tx - cx)^2 + (ty - cy)^2
+      if not best or d < best_dist then
+        best, best_dist = i, d
+      end
     end
   end
-  M.current = nil
+  M.current = best
 end
 
 function M.move(direction)

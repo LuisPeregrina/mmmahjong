@@ -22,13 +22,13 @@ local function play_music(name)
   if music_playing and music_playing ~= name then
     local prev = music[music_playing]
     if prev then
-      lutro.audio.stop(prev)
+      love.audio.stop(prev)
     end
   end
   local src = music[name]
   if src then
-    print("play_music: found src, calling lutro.audio.play()")
-    lutro.audio.play(src)
+    print("play_music: found src, calling love.audio.play()")
+    love.audio.play(src)
     music_playing = name
   else
     print("play_music: no src found for '" .. tostring(name) .. "'")
@@ -61,27 +61,27 @@ local function update_camera(dt)
   end
 end
 
-function lutro.conf(t)
+function love.conf(t)
   t.width = conf.SCREEN_W
   t.height = conf.SCREEN_H
 end
 
-function lutro.load()
+function love.load()
   math.randomseed(os.time())
 
-  lutro.graphics.setDefaultFilter("nearest", "nearest", 0)
+  love.graphics.setDefaultFilter("nearest", "nearest", 0)
 
-  vw = lutro.graphics.getWidth()
-  vh = lutro.graphics.getHeight()
+  vw = love.graphics.getWidth()
+  vh = love.graphics.getHeight()
   render.vw = vw
   render.vh = vh
 
   render.load_assets()
   render.make_font()
-  lutro.audio.setVolume(1)
-  music.title = lutro.audio.newSource("assets/music/Lotus Pond - Loop.ogg", "stream")
-  music.game = lutro.audio.newSource("assets/music/Dragon Dance - Loop.ogg", "stream")
-  sfx_cursor = lutro.audio.newSource("assets/sounds/ceramic.wav", "static")
+  love.audio.setVolume(1)
+  music.title = love.audio.newSource("assets/music/Lotus Pond - Loop.ogg", "stream")
+  music.game = love.audio.newSource("assets/music/Dragon Dance - Loop.ogg", "stream")
+  sfx_cursor = love.audio.newSource("assets/sounds/ceramic.wav", "static")
   play_music("title")
 
   gs.tiles = nil
@@ -109,7 +109,7 @@ function new_game()
   cam_target_x, cam_target_y = 0, 0
 end
 
-function lutro.update(dt)
+function love.update(dt)
   blink_time = blink_time + dt
 
   if gs.status_timer and gs.status_timer > 0 then
@@ -124,11 +124,11 @@ function lutro.update(dt)
   end
 end
 
-function lutro.draw()
-  -- lutro.graphics.clear()
-  lutro.graphics.setBackgroundColor(20, 30, 70, 255)
+function love.draw()
+  -- love.graphics.clear()
+  love.graphics.setBackgroundColor(20, 30, 70, 255)
   
-  lutro.graphics.print("¡Hola Lutro!", 100, 100)
+  love.graphics.print("¡Hola Lutro!", 100, 100)
 
 
   if SCREEN == "title" then
@@ -142,15 +142,15 @@ function lutro.draw()
     return
   end
 
-  lutro.graphics.push()
-  lutro.graphics.translate(-cam_x, -cam_y)
+  love.graphics.push()
+  love.graphics.translate(-cam_x, -cam_y)
 
   if gs.tiles then
     local sel = (cursor.state == "one_selected" and cursor.selected) or nil
     render.draw_board(gs.tiles, cursor.current, sel)
   end
 
-  lutro.graphics.pop()
+  love.graphics.pop()
 
   render.draw_hud(gs.tiles, gs.pairs_removed)
 
@@ -168,7 +168,7 @@ function set_status(msg, duration)
   gs.status_timer = duration or 1.5
 end
 
-function lutro.keypressed(key, scode, isrepeat)
+function love.keypressed(key, scode, isrepeat)
   if SCREEN == "title" then
     if key == conf.KEYS.select or key == conf.KEYS.menu then
       SCREEN = "game"
@@ -185,10 +185,10 @@ function lutro.keypressed(key, scode, isrepeat)
     return
   end
 
-  if key == conf.KEYS.up then cursor.move("up"); lutro.audio.play(sfx_cursor)
-  elseif key == conf.KEYS.down then cursor.move("down"); lutro.audio.play(sfx_cursor)
-  elseif key == conf.KEYS.left then cursor.move("left"); lutro.audio.play(sfx_cursor)
-  elseif key == conf.KEYS.right then cursor.move("right"); lutro.audio.play(sfx_cursor)
+  if key == conf.KEYS.up then cursor.move("up"); love.audio.play(sfx_cursor)
+  elseif key == conf.KEYS.down then cursor.move("down"); love.audio.play(sfx_cursor)
+  elseif key == conf.KEYS.left then cursor.move("left"); love.audio.play(sfx_cursor)
+  elseif key == conf.KEYS.right then cursor.move("right"); love.audio.play(sfx_cursor)
   elseif key == conf.KEYS.select then
     local result, status = cursor.select()
     if status == "match" then
@@ -261,7 +261,7 @@ function lutro.keypressed(key, scode, isrepeat)
   end
 end
 
-function lutro.gamepadpressed(port, button)
+function love.gamepadpressed(port, button)
   local key
   if button == "up" or button == conf.GPAD.up then key = conf.KEYS.up
   elseif button == "down" or button == conf.GPAD.down then key = conf.KEYS.down
@@ -270,14 +270,14 @@ function lutro.gamepadpressed(port, button)
   elseif button == "a" or button == conf.GPAD.a then key = conf.KEYS.select
   elseif button == "b" or button == conf.GPAD.b then key = conf.KEYS.cancel
   end
-  if key then lutro.keypressed(key, 0, false) end
+  if key then love.keypressed(key, 0, false) end
 end
 
-function lutro.serializeSize()
+function love.serializeSize()
   return 1024 * 8
 end
 
-function lutro.serialize(size)
+function love.serialize(size)
   local out = {}
   for _, t in ipairs(gs.tiles) do
     out[#out + 1] = tostring(t.id) .. ":" .. tostring(t.removed)
@@ -285,7 +285,7 @@ function lutro.serialize(size)
   return table.concat(out, ",")
 end
 
-function lutro.unserialize(data, size)
+function love.unserialize(data, size)
   new_game()
   local parts = {}
   for v in data:gmatch("[^,]+") do
