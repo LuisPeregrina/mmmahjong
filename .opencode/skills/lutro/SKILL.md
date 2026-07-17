@@ -25,11 +25,17 @@ Lutro developer skill. Lutro = libretro + LÖVE2D subset. Runs Lua 5.1 via libre
 8. **No `love.event`, `love.mouse`, `love.timer`, `love.window`, `love.system`**
 9. **No `love.math`** — use plain Lua 5.1 math library
 10. **Coordinate system** — origin (0,0) at upper-left, y increases downward
+11. **Must declare resolution** — use `lutro.conf(t)` (or `love.conf(t)`) to set `t.width` and `t.height`. Without it the core defaults to 320x240. Standard LÖVE2D's `love.conf(t)` uses `t.window.width`/`t.window.height` — Lutro uses flat `t.width`/`t.height`.
+12. **Both namespaces work** — `love.*` and `lutro.*` are both valid. `lutro.conf(t)` is the canonical resolution callback; `love.conf(t)` may also work as an alias.
+13. **`setDefaultFilter`** — `love.graphics.setDefaultFilter("nearest", "nearest", 0)` is available and recommended for pixel-art crispness.
 
 ## Typical game loop structure
 
+Callbacks can be defined under either `love.*` or `lutro.*` namespace:
+
 ```
-love.load()         # called once at start
+lutro.conf(t)       # MUST call: set t.width / t.height     ← CRITICAL
+love.load()         # called once at startup
 love.update(dt)     # called 60fps
 love.draw()         # called 60fps
 love.keypressed(key, scancode, isrepeat)
@@ -40,6 +46,19 @@ love.serialize(size)    # optional savestate
 love.unserialize(data, size)
 love.serializeSize()
 love.reset()            # frontend reset
+```
+
+Real example from love-vespa game:
+```lua
+function lutro.conf(t)
+    t.width = 320
+    t.height = 240
+end
+
+function lutro.load()
+    lutro.graphics.setDefaultFilter("nearest", "nearest", 0)
+    -- ... load assets ...
+end
 ```
 
 ## Importing this skill in a prompt

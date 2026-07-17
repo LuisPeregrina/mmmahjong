@@ -4,7 +4,28 @@ Complete API surface of Lutro (libretro LÖVE2D subset).
 
 ---
 
-## love (callbacks)
+## lutro / love (callbacks)
+
+All callbacks work under either `love.*` or `lutro.*` namespace.
+`lutro.conf(t)` is the canonical form for setting resolution; the rest
+are interchangeable (`love.load()` = `lutro.load()`, etc).
+
+### lutro.conf(t) / love.conf(t)
+**MUST call before any other callback.** Sets the game's logical resolution.
+`t` is a table. Set `t.width` and `t.height` to the desired framebuffer size.
+
+```lua
+function lutro.conf(t)
+    t.width = 320
+    t.height = 240
+end
+```
+
+Without this, the core defaults to 320x240 and `getWidth()/getHeight()`
+return the default, not the intended resolution.
+
+Note: standard LÖVE2D's `love.conf(t)` uses `t.window.width`/`t.window.height`.
+Lutro uses flat `t.width`/`t.height` — different API.
 
 ### love.load()
 Called once at startup. Load assets, initialize state.
