@@ -4,7 +4,6 @@ local board = require("board")
 local cursor = require("cursor")
 local render = require("render")
 
-local gamestate = {}
 local gs = {}
 
 local SCREEN = "title"
@@ -17,8 +16,8 @@ local music = {}
 local music_playing = nil
 local sfx_cursor = nil
 
+--- Start named music track, stopping current track when it changes.
 local function play_music(name)
-  print("play_music: '" .. tostring(name) .. "'")
   if music_playing and music_playing ~= name then
     local prev = music[music_playing]
     if prev then
@@ -27,14 +26,12 @@ local function play_music(name)
   end
   local src = music[name]
   if src then
-    print("play_music: found src, calling love.audio.play()")
     love.audio.play(src)
     music_playing = name
-  else
-    print("play_music: no src found for '" .. tostring(name) .. "'")
   end
 end
 
+--- Smoothly center camera on currently focused tile within board bounds.
 local function update_camera(dt)
   if not cursor.current or not gs.tiles then return end
   local t = gs.tiles[cursor.current]
@@ -61,15 +58,48 @@ local function update_camera(dt)
   end
 end
 
+--- Initialize cursor against current board and reset camera position.
+local function reset_navigation()
+  cursor.init(gs.tiles)
+  cam_x, cam_y = 0, 0
+  cam_target_x, cam_target_y = 0, 0
+end
+
+--- Reset all per-game state while retaining loaded assets and viewport.
+local function reset_game_state()
+  gs.pairs_removed = 0
+  gs.history = {}
+  gs.status_msg = ""
+  gs.status_timer = 0
+  gs.game_over = false
+  gs.won = false
+end
+
+--- Show a timed status message.
+local function set_status(message, duration)
+  gs.status_msg = message
+  gs.status_timer = duration or 1.5
+end
+
+--- Create and display a new randomized board.
+local function new_game()
+  gs.tiles = board.init(tiles.create_deck())
+  reset_game_state()
+  reset_navigation()
+end
+
+--- Configure Lutro's fixed logical framebuffer before startup callbacks.
 function love.conf(t)
   t.width = conf.SCREEN_W
   t.height = conf.SCREEN_H
 end
 
+--- Load Lutro assets and initialize title-screen state.
 function love.load()
   math.randomseed(os.time())
 
   love.graphics.setDefaultFilter("nearest", "nearest", 0)
+  love.graphics.setBackgroundColor(20, 30, 70, 255)
 
   vw = love.graphics.getWidth()
   vh = love.graphics.getHeight()
@@ -85,30 +115,11 @@ function love.load()
   play_music("title")
 
   gs.tiles = nil
-  gs.pairs_removed = 0
-  gs.history = {}
-  gs.status_msg = ""
-  gs.status_timer = 0
-  gs.game_over = false
-  gs.won = false
+  reset_game_state()
   blink_time = 0
 end
 
-function new_game()
-  local deck = tiles.create_deck()
-  gs.tiles = board.init(deck)
-  gs.pairs_removed = 0
-  gs.history = {}
-  gs.status_msg = ""
-  gs.status_timer = 0
-  gs.game_over = false
-  gs.won = false
-  cursor.tiles = gs.tiles
-  cursor.init(gs.tiles)
-  cam_x, cam_y = 0, 0
-  cam_target_x, cam_target_y = 0, 0
-end
-
+--- Advance animation timers and camera state once per frame.
 function love.update(dt)
   blink_time = blink_time + dt
 
@@ -124,20 +135,16 @@ function love.update(dt)
   end
 end
 
+--- Draw title screen or active game frame.
 function love.draw()
-  -- love.graphics.clear()
-  love.graphics.setBackgroundColor(20, 30, 70, 255)
-  
-  love.graphics.print("¡Hola Lutro!", 100, 100)
-
-
+  love.graphics.clear()
   if SCREEN == "title" then
-    render.draw_center_text_at(vw, "MAHJONG SOLITAIRE", vh / 2 - 40, 255, 220, 80)
-    render.draw_center_text_at(vw, "Press SPACE or A to start", vh / 2 + 20, 200, 200, 200)
+    render.draw_center_text("MAHJONG SOLITAIRE", vh / 2 - 40, 255, 220, 80)
+    render.draw_center_text("Press X or A to start", vh / 2 + 20, 200, 200, 200)
 
     local blink = math.floor(blink_time * 2) % 2 == 0
     if blink then
-      render.draw_center_text_at(vw, "H - Help  S - Shuffle  Z - Undo", vh / 2 + 50, 120, 120, 120)
+      render.draw_center_text("H - Hint  S - Shuffle  Z - Undo", vh / 2 + 50, 120, 120, 120)
     end
     return
   end
@@ -163,11 +170,7 @@ function love.draw()
   end
 end
 
-function set_status(msg, duration)
-  gs.status_msg = msg
-  gs.status_timer = duration or 1.5
-end
-
+--- Handle keyboard input for title and active game states.
 function love.keypressed(key, scode, isrepeat)
   if SCREEN == "title" then
     if key == conf.KEYS.select or key == conf.KEYS.menu then
@@ -185,10 +188,18 @@ function love.keypressed(key, scode, isrepeat)
     return
   end
 
-  if key == conf.KEYS.up then cursor.move("up"); love.audio.play(sfx_cursor)
-  elseif key == conf.KEYS.down then cursor.move("down"); love.audio.play(sfx_cursor)
-  elseif key == conf.KEYS.left then cursor.move("left"); love.audio.play(sfx_cursor)
-  elseif key == conf.KEYS.right then cursor.move("right"); love.audio.play(sfx_cursor)
+  if key == conf.KEYS.up then
+    cursor.move("up")
+    love.audio.play(sfx_cursor)
+  elseif key == conf.KEYS.down then
+    cursor.move("down")
+    love.audio.play(sfx_cursor)
+  elseif key == conf.KEYS.left then
+    cursor.move("left")
+    love.audio.play(sfx_cursor)
+  elseif key == conf.KEYS.right then
+    cursor.move("right")
+    love.audio.play(sfx_cursor)
   elseif key == conf.KEYS.select then
     local result, status = cursor.select()
     if status == "match" then
@@ -212,8 +223,6 @@ function love.keypressed(key, scode, isrepeat)
       set_status("No match", 0.8)
     elseif status == "blocked" then
       set_status("Tile blocked!", 0.8)
-    elseif status == "selected" then
-    elseif status == "deselected" then
     end
   elseif key == conf.KEYS.cancel then
     cursor.cancel()
@@ -223,9 +232,7 @@ function love.keypressed(key, scode, isrepeat)
       board.restore_pair(gs.tiles, last[1], last[2])
       gs.history[#gs.history] = nil
       gs.pairs_removed = gs.pairs_removed - 1
-      cursor.reset()
-      cursor.tiles = gs.tiles
-      cursor.init(gs.tiles)
+      reset_navigation()
       set_status("Undo", 1.0)
     end
   elseif key == conf.KEYS.hint then
@@ -238,29 +245,23 @@ function love.keypressed(key, scode, isrepeat)
     end
   elseif key == conf.KEYS.shuffle then
     local remaining = {}
-    for i, t in ipairs(gs.tiles) do
-      if not t.removed then
+    local types = {}
+    for i, tile in ipairs(gs.tiles) do
+      if not tile.removed then
         remaining[#remaining + 1] = i
+        types[#types + 1] = tile.type
       end
     end
-    local types = {}
-    for _, idx in ipairs(remaining) do
-      types[#types + 1] = gs.tiles[idx].type
+    tiles.shuffle(types)
+    for index, tile_index in ipairs(remaining) do
+      gs.tiles[tile_index].type = types[index]
     end
-    for i = #types, 2, -1 do
-      local j = math.random(i)
-      types[i], types[j] = types[j], types[i]
-    end
-    for k, idx in ipairs(remaining) do
-      gs.tiles[idx].type = types[k]
-    end
-    cursor.reset()
-    cursor.tiles = gs.tiles
-    cursor.init(gs.tiles)
+    reset_navigation()
     set_status("Shuffled!", 1.0)
   end
 end
 
+--- Translate Lutro gamepad buttons into keyboard actions.
 function love.gamepadpressed(port, button)
   local key
   if button == "up" or button == conf.GPAD.up then key = conf.KEYS.up
@@ -273,28 +274,47 @@ function love.gamepadpressed(port, button)
   if key then love.keypressed(key, 0, false) end
 end
 
+--- Return maximum serialized savestate byte size expected by Lutro.
 function love.serializeSize()
   return 1024 * 8
 end
 
+--- Serialize board types and removal state for Lutro savestates.
 function love.serialize(size)
+  if not gs.tiles then
+    return ""
+  end
+
   local out = {}
   for _, t in ipairs(gs.tiles) do
-    out[#out + 1] = tostring(t.id) .. ":" .. tostring(t.removed)
+    out[#out + 1] = t.type .. ":" .. (t.removed and "1" or "0")
   end
   return table.concat(out, ",")
 end
 
+--- Restore board types and removal state from a Lutro savestate.
 function love.unserialize(data, size)
-  new_game()
-  local parts = {}
-  for v in data:gmatch("[^,]+") do
-    parts[#parts + 1] = v
+  if data == "" then
+    SCREEN = "title"
+    return
   end
-  for i, p in ipairs(parts) do
-    local id_str, rem_str = p:match("^(%d+):(%a+)$")
-    if id_str and rem_str and gs.tiles[i] then
-      gs.tiles[i].removed = (rem_str == "true")
+
+  new_game()
+  local removed_count = 0
+  local index = 0
+  for entry in data:gmatch("[^,]+") do
+    index = index + 1
+    local tile_type, removed = entry:match("^([%a_]+):([01])$")
+    if tile_type and removed and gs.tiles[index] then
+      gs.tiles[index].type = tile_type
+      gs.tiles[index].removed = removed == "1"
+      if gs.tiles[index].removed then
+        removed_count = removed_count + 1
+      end
     end
   end
+  gs.pairs_removed = removed_count / 2
+  SCREEN = "game"
+  reset_navigation()
+  play_music("game")
 end

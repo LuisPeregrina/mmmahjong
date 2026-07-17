@@ -1,68 +1,66 @@
-# Miyoo Mahjong Solitaire
+# Mahjong Solitaire for Lutro
 
-A mouse-free, retro-optimized Mahjong Solitaire game written in Python 2.7 and Pygame, specifically configured for the **Miyoo Mini** (and Miyoo Mini Plus) running OnionOS.
+Controller-first Mahjong Solitaire for [Lutro](https://github.com/libretro/libretro-lutro) libretro core. Runs at 640x480 with pixel-art tiles, bitmap font, gamepad support, undo, hints, shuffling, and Lutro savestates.
 
----
+## Requirements
 
-## 🎮 Game Overview
+- RetroArch with `lutro_libretro`
+- Python 3.9+ for asset generation and packaging
+- Python packages: `cairosvg` and `Pillow`
 
-Mahjong Solitaire is a classic tile-matching game. While traditionally played with a mouse to click on matching tiles, this version uses a **smart grid cursor system** designed explicitly for a D-pad controller layout, making selection snappy and natural without a pointer.
+Install asset-tool dependencies with `python3 -m pip install cairosvg Pillow`.
 
-### Screen & Engine Constraints
-* **Platform:** Miyoo Mini & Miyoo Mini Plus
-* **Resolution:** 640 x 480 (Standard 4:3 display ratio)
-* **Language:** Python 2.7
-* **Framework:** Pygame (1.9.x native build for OnionOS)
+## Run
 
----
+Generate assets and launch local RetroArch installation:
 
-## 🕹️ Controls (Miyoo Mini Mapping)
+```sh
+python3 tools/launch.py
+```
 
-Since the Miyoo Mini lacks a mouse, all actions are driven by keyboard event mappings that OnionOS translates from the physical handheld buttons:
+`tools/launch.py` expects macOS RetroArch paths. Edit `RETROARCH_PATH` and `CORE_PATH` for another installation, or load repository root directly through Lutro in RetroArch.
 
-| Physical Button | Keyboard Event (Pygame Key) | Action |
-|:---|:---|:---|
-| **D-Pad** | `K_UP` / `K_DOWN` / `K_LEFT` / `K_RIGHT` | Move Tile Cursor (Smart Nearest-Neighbor jump) |
-| **A Button** | `K_LCTRL` (or Space/Return) | Select / Match Tile |
-| **B Button** | `K_LALT` (or Backspace) | Deselect / Cancel |
-| **X Button** | `K_LSHIFT` | Undo Last Move |
-| **Y Button** | `K_SPACE` | Shuffle remaining tiles (when stuck) |
-| **L/R Buttons** | `K_e` / `K_t` | Cycle through board styles |
-| **Menu Button** | `K_ESCAPE` | Exit to OnionOS |
+## Controls
 
----
+| Input | Action |
+| --- | --- |
+| D-pad or arrow keys | Move cursor between playable tiles |
+| A / `X` | Select tile or confirm pair |
+| B / `Z` | Cancel selection |
+| `H` | Highlight a legal pair |
+| `S` | Shuffle remaining tile faces |
+| `U` | Undo most recent removed pair |
+| Escape | Start game from title screen |
 
-## 🛠️ Smart D-Pad Navigation Engine
+## Rules
 
-Implementing a tile-matching game without a mouse requires an intuitive cursor pathing logic. Because Mahjong Solitaire uses layered 3D tiles (often stacked up to 5 levels high), simple grid increments will feel clunky. 
+A tile is playable when no tile is above it and either horizontal side is open. Remove two playable matching tiles. Numbered, wind, and dragon tiles need exact matches. Any two flowers or any two seasons match. Clear all 144 tiles to win.
 
-This game uses a **Raycast Distance-Weighted Pathing** algorithm to determine where the cursor goes when you press a direction:
+## Build Package
 
-1. **Directional Masking:** If you press `RIGHT`, the game filters out all tiles whose X-coordinate is less than or equal to the current tile.
-2. **Euclidean Distance Penalty:** It calculates the distance ($d$) from the current tile to all valid candidate tiles in that direction:
-   $$d = \sqrt{(x_2 - x_1)^2 + \gamma(y_2 - y_1)^2 + \lambda(z_2 - z_1)^2}$$
-3. **Weight Bias ($\gamma$ and $\lambda$):** A penalty multiplier is added to height differences ($z$) and perpendicular directions ($y$ when moving horizontally) to prioritize logical linear movements on the same plane.
-4. **Auto-Jump:** The cursor jumps instantly to the best-weighted candidate tile.
+```sh
+python3 tools/package.py
+```
 
----
+Creates `out/mahjong.zip`. Archive root contains `main.lua`, Lua modules, and only Lutro runtime assets. This layout is required by Lutro: it loads `main.lua` from archive root and resolves asset paths relative to it.
 
-## 📂 Project Structure
+## Project Layout
 
 ```text
-miyoo-mahjong/
-├── app/
-│   ├── main.py            # Main game loop (640x480 surface initialization)
-│   ├── board.py           # 3D layout math & matching validation
-│   ├── cursor.py          # D-Pad raycast navigation engine
-│   ├── assets/
-│   │   ├── tiles/         # Optimized 32x40 tile assets (PNG-8)
-│   │   ├── sfx/           # Low-bitrate matching and error sound effects (WAV)
-│   │   └── fonts/         # TrueType pixel fonts for low-res readability
-│   └── config.json        # Key mapping and screen settings
-├── dist/                  # Output package ready for OnionOS
-│   └── App/
-│       └── Mahjong/
-│           ├── launch.sh  # OnionOS execution shell script
-│           └── icon.png   # 80x80 app icon
-├── README.md
-└── requirements.txt
+main.lua                 Development entry point; adds src/ to module path
+src/main.lua             Lutro callbacks and game-state orchestration
+src/conf.lua             Game constants, deck definitions, input mapping
+src/board.lua            Fixed layout, playability, legal-pair queries
+src/cursor.lua           Controller navigation and selection state
+src/render.lua           Lutro drawing and bitmap-text helpers
+src/tiles.lua            Deck creation, shuffling, matching rules
+assets/generated/        Lutro-ready sprite sheet and bitmap font
+tools/                   Asset generators, launcher, and packager
+docs/game_rules.md       Expanded gameplay reference
+```
+
+## Contributing
+
+Keep game code compatible with Lua 5.1 and Lutro's LÖVE subset. Do not add desktop-only LÖVE APIs, TrueType font loading, filesystem APIs, or shaders to runtime Lua. Generated PNG files are runtime assets; regenerate them with tools after changing source art or font configuration.
+
+Project licensed under [MIT](LICENSE).

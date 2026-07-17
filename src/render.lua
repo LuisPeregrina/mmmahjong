@@ -8,6 +8,7 @@ M.quads = {}
 M.vw = conf.SCREEN_W
 M.vh = conf.SCREEN_H
 
+--- Load Lutro image assets and create sprite-sheet quads for each tile type.
 function M.load_assets()
   M.tileset = love.graphics.newImage("assets/generated/tiles.png")
   for i, tt in ipairs(conf.TILE_TYPES) do
@@ -20,6 +21,7 @@ function M.load_assets()
   end
 end
 
+--- Load generated bitmap font required by Lutro's image-font renderer.
 function M.make_font()
   local gstr = " ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@,.;/:-"
   M.font_img = love.graphics.newImage("assets/generated/font.png")
@@ -27,6 +29,7 @@ function M.make_font()
   love.graphics.setFont(M.font)
 end
 
+--- Draw wooden playing surface behind fixed board layout.
 function M.draw_board_background()
   local tw = 14 * conf.TILE_W
   local th = 6 * conf.TILE_H
@@ -47,6 +50,7 @@ function M.draw_board_background()
     tw + pad * 2 - 4, th + pad * 2 - 4)
 end
 
+--- Draw recessed marks where higher tiles obscure lower tiles.
 function M.draw_layer_cutouts(tiles)
   local above = {}
   for i, t in ipairs(tiles) do
@@ -69,6 +73,7 @@ function M.draw_layer_cutouts(tiles)
   end
 end
 
+--- Draw board tiles from lowest to highest layer and cursor overlays.
 function M.draw_board(tiles, highlight_idx, selected_idx)
   M.draw_board_background()
   M.draw_layer_cutouts(tiles)
@@ -103,6 +108,7 @@ function M.draw_board(tiles, highlight_idx, selected_idx)
   love.graphics.setColor(255, 255, 255, 255)
 end
 
+--- Return bitmap-font width while preserving manually rendered spaces.
 function M.text_width(text)
   local width = 0
   local space_width = M.font and M.font:getWidth("I") or 5
@@ -115,6 +121,7 @@ function M.text_width(text)
   return width
 end
 
+--- Draw bitmap text with optional RGB color and reliable space width.
 function M.draw_text(text, x, y, r, g, b)
   love.graphics.setColor(r or 255, g or 255, b or 255, 255)
   local space_width = M.font and M.font:getWidth("I") or 5
@@ -128,29 +135,27 @@ function M.draw_text(text, x, y, r, g, b)
   love.graphics.setColor(255, 255, 255, 255)
 end
 
+--- Draw text centered in current Lutro viewport.
 function M.draw_center_text(text, y, r, g, b)
   local w = M.text_width(text)
-  M.draw_text(text, conf.SCREEN_W / 2 - w / 2, y, r, g, b)
+  M.draw_text(text, M.vw / 2 - w / 2, y, r, g, b)
 end
 
-function M.draw_center_text_at(screen_w, text, y, r, g, b)
-  local w = M.text_width(text)
-  M.draw_text(text, screen_w / 2 - w / 2, y, r, g, b)
-end
-
+--- Draw pair count, remaining tile count, and control reminder.
 function M.draw_hud(tiles, pairs_removed)
   M.draw_text("Pairs: " .. pairs_removed, 8, 8, 200, 200, 200)
   M.draw_text("H:Hint  Z:Undo  S:Shuffle", 8, M.vh - 16, 160, 160, 160)
 
-  if M.tiles_left then
-    local left = 0
-    for _, t in ipairs(tiles) do
-      if not t.removed then left = left + 1 end
+  local left = 0
+  for _, tile in ipairs(tiles) do
+    if not tile.removed then
+      left = left + 1
     end
-    M.draw_text("Tiles: " .. left, 8, 20, 200, 200, 200)
   end
+  M.draw_text("Tiles: " .. left, 8, 20, 200, 200, 200)
 end
 
+--- Draw transient centered status notification.
 function M.draw_status(msg)
   if msg then
     local w = M.text_width(msg)
@@ -161,6 +166,7 @@ function M.draw_status(msg)
   end
 end
 
+--- Draw final win or no-moves overlay.
 function M.draw_game_over(win)
   local msg = win and "YOU WIN!" or "GAME OVER"
   local w = M.text_width(msg)

@@ -1,3 +1,5 @@
+require("global")
+
 local M = {}
 
 M.SCREEN_W = 640
@@ -19,15 +21,17 @@ M.SCALE = 1
 
 M.TILE_TYPES = {}
 local t = 0
-for i = 1, 9 do
-  t = t + 1; M.TILE_TYPES[t] = "bamboo_" .. i
+local function add_numbered_types(suit)
+  for i = 1, 9 do
+    t = t + 1
+    M.TILE_TYPES[t] = suit .. "_" .. i
+  end
 end
-for i = 1, 9 do
-  t = t + 1; M.TILE_TYPES[t] = "dot_" .. i
-end
-for i = 1, 9 do
-  t = t + 1; M.TILE_TYPES[t] = "char_" .. i
-end
+
+--- Add one numbered suit's tile types in sprite-sheet order.
+add_numbered_types("bamboo")
+add_numbered_types("dot")
+add_numbered_types("char")
 local winds = { "east", "south", "west", "north" }
 for _, w in ipairs(winds) do
   t = t + 1; M.TILE_TYPES[t] = "wind_" .. w

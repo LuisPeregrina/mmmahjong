@@ -1,11 +1,12 @@
-local conf = require("conf")
 local board = require("board")
+local tileset = require("tiles")
 local M = {}
 
 M.current = nil
 M.selected = nil
 M.state = "idle"
 
+--- Point cursor at first playable tile and clear selection.
 function M.init(tiles)
   M.tiles = tiles
   for i, t in ipairs(tiles) do
@@ -18,6 +19,7 @@ function M.init(tiles)
   M.state = "idle"
 end
 
+--- Move cursor to nearest playable tile when current one is no longer playable.
 function M.ensure_current()
   if M.current and board.is_free(M.tiles, M.current) then return end
 
@@ -42,6 +44,7 @@ function M.ensure_current()
   M.current = best
 end
 
+--- Move cursor to nearest playable tile in a cardinal direction.
 function M.move(direction)
   if not M.current then return end
   local tiles = M.tiles
@@ -53,6 +56,8 @@ function M.move(direction)
   end
 end
 
+--- Select current tile, toggle selection, or return selected matching pair.
+-- @return pair|nil, status|nil
 function M.select()
   local tiles = M.tiles
   if not tiles then return nil, nil end
@@ -75,13 +80,12 @@ function M.select()
     local first = tiles[M.selected]
     local second = tiles[M.current]
 
-    if first.type == second.type then
+    if tileset.matches(first, second) then
       local idx_a, idx_b = M.selected, M.current
       M.state = "idle"
       M.selected = nil
       return { idx_a, idx_b }, "match"
     else
-      local old = M.selected
       M.selected = M.current
       return nil, "mismatch"
     end
@@ -89,6 +93,7 @@ function M.select()
   return nil, nil
 end
 
+--- Clear pending tile selection.
 function M.cancel()
   if M.state == "one_selected" then
     M.selected = nil
@@ -96,12 +101,14 @@ function M.cancel()
   end
 end
 
+--- Select a known playable tile, used by hints.
 function M.set_selected(idx)
   M.selected = idx
   M.current = idx
   M.state = "one_selected"
 end
 
+--- Clear cursor state before initializing a replacement board.
 function M.reset()
   M.current = nil
   M.selected = nil
