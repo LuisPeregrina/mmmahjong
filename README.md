@@ -64,3 +64,14 @@ docs/game_rules.md       Expanded gameplay reference
 Keep game code compatible with Lua 5.1 and Lutro's LÖVE subset. Do not add desktop-only LÖVE APIs, TrueType font loading, filesystem APIs, or shaders to runtime Lua. Generated PNG files are runtime assets; regenerate them with tools after changing source art or font configuration.
 
 Project licensed under [MIT](LICENSE).
+
+
+## Assets:
+- Sounds:
+  - `ceramic.wav`: [Single Ceramic Tee Mug Table Clink](https://pixabay.com/sound-effects/film-special-effects-single-ceramic-tee-mug-table-clink-544816/)
+- Music:
+  - `Dragon Dance - Loop.ogg` and `Lotus Pond - Loop.ogg`: [Chinese Game Music](https://bitemegames.itch.io/chinese-game-music)
+- Tiles:
+  - [Mahjong](https://demching.itch.io/mahjong)
+- Fonts:
+  - `shanghai.ttf`: [Shanghai](https://www.dafont.com/shanghai.font)
