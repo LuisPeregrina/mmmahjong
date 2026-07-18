@@ -1,0 +1,30 @@
+name: CD
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install dependencies
+        run: python3 -m pip install cairosvg Pillow
+
+      - name: Generate assets and package
+        run: python3 tools/package.py
+
+      - name: Upload to release
+        uses: akkuman/gitea-release-action@v1
+        with:
+          api_key: ${{ secrets.RELEASE_TOKEN }}
+          artifacts: out/mahjong.zip
+          tag: ${{ github.ref_name }}
+          body: "See ${{ github.ref_name }} release notes."
