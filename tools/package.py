@@ -61,10 +61,16 @@ if OUT_ZIP.exists():
     OUT_ZIP.unlink()
 
 with zipfile.ZipFile(OUT_ZIP, "w", zipfile.ZIP_DEFLATED) as zf:
-    for path in BUILD_DIR.rglob("*"):
-        if path.is_file():
-            arcname = path.relative_to(BUILD_DIR).as_posix()
-            zf.write(path, arcname)
+    files = [path for path in BUILD_DIR.rglob("*") if path.is_file()]
+    directories = sorted({path.parent for path in files if path.parent != BUILD_DIR})
+
+    # Lutro creates directories only for explicit ZIP directory entries.
+    for directory in directories:
+        zf.writestr(directory.relative_to(BUILD_DIR).as_posix() + "/", b"")
+
+    for path in files:
+        arcname = path.relative_to(BUILD_DIR).as_posix()
+        zf.write(path, arcname)
 
 shutil.rmtree(BUILD_DIR)
 
