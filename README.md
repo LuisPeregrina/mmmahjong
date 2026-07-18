@@ -68,9 +68,9 @@ Project licensed under [MIT](LICENSE).
 
 ## Assets:
 - Sounds:
-  - `ceramic.wav`: [Single Ceramic Tee Mug Table Clink](https://pixabay.com/sound-effects/film-special-effects-single-ceramic-tee-mug-table-clink-544816/)
+  - `ceramic.wav`: [Single Ceramic Tee Mug Table Clink](https://pixabay.com/sound-effects/film-special-effects-single-ceramic-tee-mug-table-clink-544816/) (Shortened and converted to waveform with Audacity)
 - Music:
-  - `Dragon Dance - Loop.ogg` and `Lotus Pond - Loop.ogg`: [Chinese Game Music](https://bitemegames.itch.io/chinese-game-music)
+  - `Dragon Dance - Loop.ogg` and `Lotus Pond - Loop.ogg`: [Chinese Game Music](https://bitemegames.itch.io/chinese-game-music) (Reformated with ffmpeg (libvorbis) quality 1)
 - Tiles:
   - [Mahjong](https://demching.itch.io/mahjong)
 - Fonts:
