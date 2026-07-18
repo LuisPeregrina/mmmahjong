@@ -26,8 +26,10 @@ jobs:
 
       - name: Upload to release
         uses: akkuman/gitea-release-action@v1
+        env:
+          NODE_TLS_REJECT_UNAUTHORIZED=false
         with:
-          api_key: ${{ secrets.RELEASE_TOKEN }}
-          artifacts: out/mahjong.lutro
-          tag: ${{ github.ref_name }}
+          #api_key: ${{ secrets.RELEASE_TOKEN }}
+          files: out/mahjong.lutro
+          #tag: ${{ github.ref_name }}
           body: "See ${{ github.ref_name }} release notes."
