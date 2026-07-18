@@ -25,9 +25,6 @@ jobs:
         run: python3 tools/package.py --compile
 
       - name: Upload to release
-        uses: akkuman/gitea-release-action@v1
-        env:
-          NODE_TLS_REJECT_UNAUTHORIZED=false
+        uses: softprops/action-gh-release@v3
         with:
           files: out/mmmahjong.lutro
-          body: "See ${{ github.ref_name }} release notes."

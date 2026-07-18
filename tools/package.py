@@ -8,7 +8,7 @@ import zipfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-OUT_ZIP = ROOT / "out" / "mahjong.lutro"
+OUT_ZIP = ROOT / "out" / "mmmahjong.lutro"
 SRC = ROOT / "src"
 GENERATED_DIR = ROOT / "assets" / "generated"
 ASSETS = [

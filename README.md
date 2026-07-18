@@ -46,7 +46,7 @@ A tile is playable when no tile is above it and either horizontal side is open. 
 python3 tools/package.py
 ```
 
-Creates `out/mahjong.lutro`. Archive root contains `main.lua`, Lua modules, and only Lutro runtime assets. This layout is required by Lutro: it loads `main.lua` from archive root and resolves asset paths relative to it.
+Creates `out/mmmahjong.lutro`. Archive root contains `main.lua`, Lua modules, and only Lutro runtime assets. This layout is required by Lutro: it loads `main.lua` from archive root and resolves asset paths relative to it.
 
 ## Project Layout
 
