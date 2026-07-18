@@ -1,5 +1,6 @@
 """Package game into .lutro zipfile for Lutro."""
 
+import argparse
 import shutil
 import subprocess
 import sys
@@ -28,6 +29,17 @@ BUILD_DIR.mkdir(parents=True, exist_ok=True)
 for fname in SRC.iterdir():
     if fname.is_file() and fname.suffix == ".lua":
         shutil.copy2(fname, BUILD_DIR / fname.name)
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--compile", action="store_true", help="precompile .lua to .luac with luac5.1")
+args = parser.parse_args()
+
+if args.compile:
+    for f in list(BUILD_DIR.iterdir()):
+        if f.suffix == ".lua":
+            luac = BUILD_DIR / (f.stem + ".luac")
+            subprocess.run(["luac5.1", "-o", str(luac), str(f)], check=True)
+            f.unlink()
 
 for asset in ASSETS:
     if not asset.exists():
