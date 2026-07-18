@@ -27,7 +27,7 @@ jobs:
       - name: Upload to release
         uses: akkuman/gitea-release-action@v1
         with:
-          api_key: ${{ secrets.GITHUB_TOKEN }}
-          artifacts: out/mahjong.zip
+          api_key: ${{ secrets.RELEASE_TOKEN }}
+          artifacts: out/mahjong.lutro
           tag: ${{ github.ref_name }}
           body: "See ${{ github.ref_name }} release notes."
