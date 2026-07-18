@@ -20,6 +20,10 @@ python3 tools/launch.py
 
 `tools/launch.py` expects macOS RetroArch paths. Edit `RETROARCH_PATH` and `CORE_PATH` for another installation, or load repository root directly through Lutro in RetroArch.
 
+## Screenshot
+
+![Screenshot of a Solitaire Mahjong game.](./screenshot.jpg)
+
 ## Controls
 
 | Input | Action |
