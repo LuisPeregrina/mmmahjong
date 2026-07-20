@@ -110,7 +110,8 @@ M.COLORS = {
   board_inner   = { 100, 70,  30 },
   board_border  = { 40,  25,  10 },
   shadow        = { 15,  20,  50, 200 },
-  tile_light    = { 255, 255, 255 },
+  tile_light    = { 255, 255, 255, 255 },
+  tile_dark     = { 127, 127, 127, 120 },
   cursor        = { 255, 255, 0,   120 },
   selected      = { 0,   255, 0,   160 },
   hint_outline  = { 255, 0,   255, 180 },
@@ -126,5 +127,5 @@ M.COLORS = {
   title_sub     = { 200, 200, 200 },
   title_hint    = { 120, 120, 120 },
 }
-M.blocked_tint_pct = 1
+M.blocked_tint_pct = .5
 return M

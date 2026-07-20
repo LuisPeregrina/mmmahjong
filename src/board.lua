@@ -77,7 +77,7 @@ local function rects_overlap(l1x, l1y, l1x2, l1y2, l2x, l2y, l2x2, l2y2)
 end
 
 --- Return whether tile has no tile above and an open left or right side.
-function M.is_free(tiles, idx)
+function M.is_free(tiles, idx, top)
   local t = tiles[idx]
   if t.removed then return false end
 
@@ -91,6 +91,8 @@ function M.is_free(tiles, idx)
       end
     end
   end
+
+  if top then return true end
 
   local left_blocked = false
   local right_blocked = false
