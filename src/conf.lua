@@ -7,6 +7,8 @@ M.SCREEN_H = 560
 
 M.TILE_W = 48
 M.TILE_H = 60
+M.TILE_SPACING_X = 44
+M.TILE_SPACING_Y = 56
 M.LAYER_DX = 6
 M.LAYER_DY = -4
 
@@ -124,5 +126,5 @@ M.COLORS = {
   title_sub     = { 200, 200, 200 },
   title_hint    = { 120, 120, 120 },
 }
-M.blocked_tint_pct = 0.50
+M.blocked_tint_pct = 1
 return M

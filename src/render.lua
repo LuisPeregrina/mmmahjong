@@ -4,8 +4,12 @@ local cursor = require("cursor")
 local M = {}
 
 local function darken_color(color, pct)
-  print("darken_color", color[1], color[2], color[3], pct)
-  return math.floor(color[1] * pct), math.floor(color[2] * pct), math.floor(color[3] * pct), color[4] or 255
+  print("original color", color[1], color[2], color[3])
+  local f = 1 - pct
+  local new_color = {math.floor(color[1] * f), math.floor(color[2] * f), math.floor(color[3] * f), color[4] or 255, 1}
+
+  print("darken_color", new_color[1], new_color[2], new_color[3])
+  return new_color
 end
 
 M.tileset = nil
@@ -37,8 +41,8 @@ end
 
 --- Draw wooden playing surface behind fixed board layout.
 function M.draw_board_background()
-  local tw = 14 * conf.TILE_W
-  local th = 6 * conf.TILE_H
+  local tw = 14 * conf.TILE_SPACING_X + conf.TILE_W - conf.TILE_SPACING_X
+  local th = 6 * conf.TILE_SPACING_Y + conf.TILE_H - conf.TILE_SPACING_Y
   local bx = conf.BOARD_CENTER_X - tw / 2
   local by = conf.BOARD_CENTER_Y - th / 2
   local pad = 24
@@ -89,9 +93,9 @@ function M.draw_board(tiles, highlight_idx, selected_idx)
       if not t.removed and t.layer == l then
         local x, y = board.tile_position(t)
         local ok = board.is_free(tiles, i)
-        local ok_color = conf.COLORS.tile_light
+        print("ok", ok)
         if ok then
-          love.graphics.setColor(ok_color)
+          love.graphics.setColor(conf.COLORS.tile_light)
         else
           love.graphics.setColor(darken_color(conf.COLORS.tile_light, conf.blocked_tint_pct))
         end

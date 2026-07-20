@@ -38,8 +38,8 @@ function M.tile_position(pos)
   local ldy = pos.layer * conf.LAYER_DY
 
   local total_cols = 14
-  local gx = (pos.col - (total_cols - 1) / 2) * tw
-  local gy = (pos.row - (6 - 1) / 2) * th
+  local gx = (pos.col - (total_cols - 1) / 2) * conf.TILE_SPACING_X
+  local gy = (pos.row - (6 - 1) / 2) * conf.TILE_SPACING_Y
 
   local cx = conf.BOARD_CENTER_X + gx + ldx
   local cy = conf.BOARD_CENTER_Y + gy + ldy
@@ -65,8 +65,8 @@ end
 
 local function tile_rect(t)
   local total_cols = 14
-  local gx = (t.col - (total_cols - 1) / 2) * conf.TILE_W
-  local gy = (t.row - (6 - 1) / 2) * conf.TILE_H
+  local gx = (t.col - (total_cols - 1) / 2) * conf.TILE_SPACING_X
+  local gy = (t.row - (6 - 1) / 2) * conf.TILE_SPACING_Y
   local x = conf.BOARD_CENTER_X + gx + t.layer * conf.LAYER_DX
   local y = conf.BOARD_CENTER_Y + gy + t.layer * conf.LAYER_DY
   return x, y, x + conf.TILE_W - 1, y + conf.TILE_H - 1
