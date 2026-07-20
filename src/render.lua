@@ -1,6 +1,12 @@
 local conf = require("conf")
 local board = require("board")
+local cursor = require("cursor")
 local M = {}
+
+local function darken_color(color, pct)
+  print("darken_color", color[1], color[2], color[3], pct)
+  return math.floor(color[1] * pct), math.floor(color[2] * pct), math.floor(color[3] * pct), color[4] or 255
+end
 
 M.tileset = nil
 M.font = nil
@@ -37,15 +43,15 @@ function M.draw_board_background()
   local by = conf.BOARD_CENTER_Y - th / 2
   local pad = 24
 
-  love.graphics.setColor(60, 40, 20, 255)
+  love.graphics.setColor(conf.COLORS.board_outer)
   love.graphics.rectangle("fill", bx - pad, by - pad,
     tw + pad * 2, th + pad * 2)
 
-  love.graphics.setColor(100, 70, 30, 255)
+  love.graphics.setColor(conf.COLORS.board_inner)
   love.graphics.rectangle("fill", bx - pad + 4, by - pad + 4,
     tw + pad * 2 - 8, th + pad * 2 - 8)
 
-  love.graphics.setColor(40, 25, 10, 255)
+  love.graphics.setColor(conf.COLORS.board_border)
   love.graphics.rectangle("line", bx - pad + 2, by - pad + 2,
     tw + pad * 2 - 4, th + pad * 2 - 4)
 end
@@ -67,7 +73,7 @@ function M.draw_layer_cutouts(tiles)
   for i, t in ipairs(tiles) do
     if not t.removed and above[i] then
       local x, y = board.tile_position(t)
-      love.graphics.setColor(15, 20, 50, 200)
+      love.graphics.setColor(conf.COLORS.shadow)
       love.graphics.rectangle("fill", x + 4, y + 4, conf.TILE_W - 8, conf.TILE_H - 8)
     end
   end
@@ -83,29 +89,37 @@ function M.draw_board(tiles, highlight_idx, selected_idx)
       if not t.removed and t.layer == l then
         local x, y = board.tile_position(t)
         local ok = board.is_free(tiles, i)
-
+        local ok_color = conf.COLORS.tile_light
         if ok then
-          love.graphics.setColor(255, 255, 255, 255)
+          love.graphics.setColor(ok_color)
         else
-          love.graphics.setColor(80, 80, 80, 180)
+          love.graphics.setColor(darken_color(conf.COLORS.tile_light, conf.blocked_tint_pct))
         end
 
         love.graphics.draw(M.tileset, M.quads[t.type], x, y)
 
         if i == highlight_idx then
-          love.graphics.setColor(255, 255, 0, 120)
+          love.graphics.setColor(conf.COLORS.cursor)
           love.graphics.rectangle("fill", x, y, conf.TILE_W, conf.TILE_H)
         end
 
         if i == selected_idx then
-          love.graphics.setColor(0, 255, 0, 160)
+          love.graphics.setColor(conf.COLORS.selected)
           love.graphics.rectangle("fill", x, y, conf.TILE_W, conf.TILE_H)
+        end
+
+        if cursor.hint_idx and i == cursor.hint_idx then
+          local blink = math.floor(love.timer.getTime() * 4) % 2 == 0
+          if blink then
+            love.graphics.setColor(conf.COLORS.hint_outline)
+            love.graphics.rectangle("line", x - 2, y - 2, conf.TILE_W + 4, conf.TILE_H + 4, 3)
+          end
         end
       end
     end
   end
 
-  love.graphics.setColor(255, 255, 255, 255)
+  love.graphics.setColor(conf.COLORS.tile_light)
 end
 
 --- Return bitmap-font width while preserving manually rendered spaces.
@@ -132,7 +146,7 @@ function M.draw_text(text, x, y, r, g, b)
     end
     x = x + #spaces * space_width
   end
-  love.graphics.setColor(255, 255, 255, 255)
+  love.graphics.setColor(conf.COLORS.tile_light)
 end
 
 --- Draw text centered in current Lutro viewport.
@@ -143,8 +157,7 @@ end
 
 --- Draw pair count, remaining tile count, and control reminder.
 function M.draw_hud(tiles, pairs_removed)
-  M.draw_text("Pairs: " .. pairs_removed, 8, 8, 200, 200, 200)
-  M.draw_text("H:Hint  Z:Undo  S:Shuffle", 8, M.vh - 16, 160, 160, 160)
+  M.draw_text("Pairs: " .. pairs_removed, 8, 8, unpack(conf.COLORS.hud_text))
 
   local left = 0
   for _, tile in ipairs(tiles) do
@@ -152,17 +165,24 @@ function M.draw_hud(tiles, pairs_removed)
       left = left + 1
     end
   end
-  M.draw_text("Tiles: " .. left, 8, 20, 200, 200, 200)
+  M.draw_text("Tiles: " .. left, 8, 20, unpack(conf.COLORS.hud_text))
+
+  if M.vw < 600 then
+    M.draw_text("R1=Hint L1=Undo", 8, M.vh - 16, unpack(conf.COLORS.control_text))
+    M.draw_text("R2=Shuff", 8, M.vh - 28, unpack(conf.COLORS.control_text))
+  else
+    M.draw_text("R1:Hint  L1:Undo  R2:Shuff  Start:Menu", 8, M.vh - 16, unpack(conf.COLORS.control_text))
+  end
 end
 
 --- Draw transient centered status notification.
 function M.draw_status(msg)
   if msg then
     local w = M.text_width(msg)
-    love.graphics.setColor(255, 220, 0, 255)
+    love.graphics.setColor(conf.COLORS.status_bg)
     love.graphics.rectangle("fill", M.vw / 2 - w / 2 - 6, M.vh / 2 - 16, w + 12, 24)
-    M.draw_text(msg, M.vw / 2 - w / 2, M.vh / 2 - 12, 0, 0, 0)
-    love.graphics.setColor(255, 255, 255, 255)
+    M.draw_text(msg, M.vw / 2 - w / 2, M.vh / 2 - 12, unpack(conf.COLORS.status_text))
+    love.graphics.setColor(conf.COLORS.tile_light)
   end
 end
 
@@ -170,11 +190,11 @@ end
 function M.draw_game_over(win)
   local msg = win and "YOU WIN!" or "GAME OVER"
   local w = M.text_width(msg)
-  love.graphics.setColor(0, 0, 0, 220)
+  love.graphics.setColor(conf.COLORS.overlay)
   love.graphics.rectangle("fill", 0, M.vh / 2 - 40, M.vw, 80)
   M.draw_text(msg, M.vw / 2 - w / 2, M.vh / 2 - 12,
-    win and 80 or 255, win and 255 or 80, win and 80 or 80)
-  love.graphics.setColor(255, 255, 255, 255)
+    unpack(win and conf.COLORS.win_text or conf.COLORS.lose_text))
+  love.graphics.setColor(conf.COLORS.tile_light)
 end
 
 return M

@@ -9,7 +9,7 @@ function M.shuffle(items)
   end
 end
 
---- Create randomized 144-tile deck with stable tile identifiers.
+--- Assign a copy of the pre-built shuffled deck with stable identifiers.
 function M.create_deck()
   local deck = {}
   for i = 1, conf.NUM_TILES do

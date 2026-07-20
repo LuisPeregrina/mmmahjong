@@ -28,6 +28,15 @@ Lutro developer skill. Lutro = libretro + LÖVE2D subset. Runs Lua 5.1 via libre
 11. **Must declare resolution** — use `lutro.conf(t)` (or `love.conf(t)`) to set `t.width` and `t.height`. Without it the core defaults to 320x240. Standard LÖVE2D's `love.conf(t)` uses `t.window.width`/`t.window.height` — Lutro uses flat `t.width`/`t.height`.
 12. **Both namespaces work** — `love.*` and `lutro.*` are both valid. `lutro.conf(t)` is the canonical resolution callback; `love.conf(t)` may also work as an alias.
 13. **`setDefaultFilter`** — `love.graphics.setDefaultFilter("nearest", "nearest", 0)` is available and recommended for pixel-art crispness.
+14. **⚠️ `unpack` trims in non-tail position** — In Lua 5.1, `unpack(t)` in a non-trailing position of an expression list gets trimmed to 1 value (the first element). The remaining elements are discarded.
+    ```lua
+    -- BAD: unpack is NOT the last expression - gets trimmed to 1 value
+    darken_color(unpack({255, 255, 255}), 255, 0.5)  -- only passes 255, 255, 0.5
+    -- GOOD: pass table directly, unpack inside the function
+    darken_color({255, 255, 255}, 0.5)
+    -- ALSO GOOD: unpack is the LAST/only expression - all values pass through
+    love.graphics.setColor(darken_color({255, 255, 255}, 0.5))
+    ```
 
 ## Typical game loop structure
 

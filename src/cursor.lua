@@ -5,6 +5,7 @@ local M = {}
 M.current = nil
 M.selected = nil
 M.state = "idle"
+M.hint_idx = nil
 
 --- Point cursor at first playable tile and clear selection.
 function M.init(tiles)
@@ -95,6 +96,7 @@ end
 
 --- Clear pending tile selection.
 function M.cancel()
+  M.hint_idx = nil
   if M.state == "one_selected" then
     M.selected = nil
     M.state = "idle"
@@ -113,6 +115,17 @@ function M.reset()
   M.current = nil
   M.selected = nil
   M.state = "idle"
+  M.hint_idx = nil
+end
+
+--- Set hint target index (partner of selected hint).
+function M.set_hint(idx)
+  M.hint_idx = idx
+end
+
+--- Clear hint highlight.
+function M.clear_hint()
+  M.hint_idx = nil
 end
 
 return M

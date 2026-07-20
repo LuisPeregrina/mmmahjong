@@ -119,7 +119,7 @@ setmetatable(table, metatable)  -> table
 tonumber(e [, base])            -> number or nil
 tostring(e)                     -> string
 type(v)                         -> string type name
-unpack(list [, i [, j]])        -> elements
+unpack(list [, i [, j]])        -> elements (⚠️ see Gotcha below)
 _VERSION                        -> "Lua 5.1"
 xpcall(f, err)                  -> true, results | false, err
 ```
@@ -264,4 +264,29 @@ debug.setlocal([thread,] level, local, value)  -> name or nil
 debug.setmetatable(object, table)          -> object
 debug.setupvalue(func, up, value)          -> name or nil
 debug.traceback([thread,] [message [,level]])  -> trace string
+```
+
+## 6. Lua 5.1 Gotchas
+
+### `unpack` trims in non-tail position
+
+When `unpack(t)` is NOT the last item in an expression list, Lua trims its multi-return to **1 value** (the first element). The rest are silently discarded.
+
+```lua
+-- BAD: unpack is not in tail position
+function f(a, b, c, d, e) end
+f(unpack({1, 2, 3}), 4, 5)  -- f gets: (1, 4, 5)  -- 2 and 3 lost!
+
+-- GOOD: unpack is the only expression - all values pass
+f(unpack({1, 2, 3}))        -- f gets: (1, 2, 3)
+
+-- ALSO GOOD: pass table directly and unpack inside the function
+function darken_color(color, pct)
+  return math.floor(color[1] * pct), math.floor(color[2] * pct), math.floor(color[3] * pct), color[4] or 255
+end
+darken_color({255, 255, 255}, 0.5)  -- works correctly
+
+-- ALSO GOOD: multi-return in tail position passes through
+love.graphics.setColor(darken_color({255, 255, 255}, 0.5))
+-- darken_color returns (127, 127, 127, 255), setColor receives all 4
 ```

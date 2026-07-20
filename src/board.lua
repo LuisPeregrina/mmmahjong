@@ -63,14 +63,30 @@ function M.init(deck)
   return tiles
 end
 
+local function tile_rect(t)
+  local total_cols = 14
+  local gx = (t.col - (total_cols - 1) / 2) * conf.TILE_W
+  local gy = (t.row - (6 - 1) / 2) * conf.TILE_H
+  local x = conf.BOARD_CENTER_X + gx + t.layer * conf.LAYER_DX
+  local y = conf.BOARD_CENTER_Y + gy + t.layer * conf.LAYER_DY
+  return x, y, x + conf.TILE_W - 1, y + conf.TILE_H - 1
+end
+
+local function rects_overlap(l1x, l1y, l1x2, l1y2, l2x, l2y, l2x2, l2y2)
+  return l1x < l2x2 and l1x2 > l2x and l1y < l2y2 and l1y2 > l2y
+end
+
 --- Return whether tile has no tile above and an open left or right side.
 function M.is_free(tiles, idx)
   local t = tiles[idx]
   if t.removed then return false end
 
+  local tx, ty, tx2, ty2 = tile_rect(t)
+
   for _, other in ipairs(tiles) do
     if not other.removed and other.layer > t.layer then
-      if other.row == t.row and other.col == t.col then
+      local ox, oy, ox2, oy2 = tile_rect(other)
+      if rects_overlap(tx, ty, tx2, ty2, ox, oy, ox2, oy2) then
         return false
       end
     end
@@ -80,11 +96,16 @@ function M.is_free(tiles, idx)
   local right_blocked = false
   for _, other in ipairs(tiles) do
     if not other.removed and other.layer == t.layer then
-      if other.col == t.col - 1 and other.row == t.row then
-        left_blocked = true
+      local ox, oy, ox2, oy2 = tile_rect(other)
+      if ox2 > tx and ox < tx then
+        if oy < ty2 and oy2 > ty then
+          left_blocked = true
+        end
       end
-      if other.col == t.col + 1 and other.row == t.row then
-        right_blocked = true
+      if ox < tx2 and ox2 > tx2 then
+        if oy < ty2 and oy2 > ty then
+          right_blocked = true
+        end
       end
     end
   end
@@ -174,7 +195,13 @@ function M.get_nearest_tile(tiles, current_idx, direction)
       if direction == "down" and dy > 0 then valid = true end
 
       if valid then
-        local dist = math.sqrt(dx * dx + dy * dy * 0.5 + (t.layer - current.layer) * 20)
+        local axis_penalty = 0
+        if direction == "left" or direction == "right" then
+          axis_penalty = math.abs(dy) * 10
+        else
+          axis_penalty = math.abs(dx) * 10
+        end
+        local dist = math.sqrt(dx * dx + dy * dy * 0.5 + (t.layer - current.layer) * 20) + axis_penalty
         candidates[#candidates + 1] = { idx = i, dist = dist }
       end
     end

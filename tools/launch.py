@@ -32,7 +32,7 @@ def main() -> int:
     else:
         print(f"rasterize_tiles.py not found at {rasterize}", file=sys.stderr)
 
-    command = [RETROARCH_PATH, "-L", str(CORE_PATH), str(repo_root), "-v"]
+    command = [RETROARCH_PATH, "-L", str(CORE_PATH), str(repo_root)+"/src", "-vvvv"]
 
     with log_path.open("w", encoding="utf-8") as log_file:
         log_file.write(f"\n=== Launching RetroArch at {datetime.now().isoformat()} ===\n")

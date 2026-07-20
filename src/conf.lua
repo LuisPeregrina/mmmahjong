@@ -2,8 +2,8 @@ require("global")
 
 local M = {}
 
-M.SCREEN_W = 640
-M.SCREEN_H = 480
+M.SCREEN_W = 750
+M.SCREEN_H = 560
 
 M.TILE_W = 48
 M.TILE_H = 60
@@ -13,7 +13,7 @@ M.LAYER_DY = -4
 M.SPRITE_COLS = 12
 
 M.BOARD_CENTER_X = M.SCREEN_W / 2
-M.BOARD_CENTER_Y = M.SCREEN_H / 2 + 10
+M.BOARD_CENTER_Y = M.SCREEN_H / 2 + 30
 
 M.NUM_TILES = 144
 
@@ -93,8 +93,36 @@ M.GPAD = {
   right = RETRO_DEVICE_ID_JOYPAD_RIGHT,
   a = RETRO_DEVICE_ID_JOYPAD_A,
   b = RETRO_DEVICE_ID_JOYPAD_B,
+  start = RETRO_DEVICE_ID_JOYPAD_START,
+  select = RETRO_DEVICE_ID_JOYPAD_SELECT,
+  l1 = RETRO_DEVICE_ID_JOYPAD_L,
+  r1 = RETRO_DEVICE_ID_JOYPAD_R,
+  l2 = RETRO_DEVICE_ID_JOYPAD_L2,
+  r2 = RETRO_DEVICE_ID_JOYPAD_R2,
 }
 
 M.MAX_LAYERS = 5
 
+M.COLORS = {
+  board_outer   = { 60,  40,  20 },
+  board_inner   = { 100, 70,  30 },
+  board_border  = { 40,  25,  10 },
+  shadow        = { 15,  20,  50, 200 },
+  tile_light    = { 255, 255, 255 },
+  cursor        = { 255, 255, 0,   120 },
+  selected      = { 0,   255, 0,   160 },
+  hint_outline  = { 255, 0,   255, 180 },
+  hud_text      = { 200, 200, 200 },
+  control_text  = { 160, 160, 160 },
+  status_bg     = { 255, 220, 0 },
+  status_text   = { 0,   0,   0 },
+  overlay       = { 0,   0,   0,   220 },
+  win_text      = { 80,  255, 80 },
+  lose_text     = { 255, 80,  80 },
+  bg            = { 20,  30,  70 },
+  title_text    = { 255, 220, 80 },
+  title_sub     = { 200, 200, 200 },
+  title_hint    = { 120, 120, 120 },
+}
+M.blocked_tint_pct = 0.50
 return M

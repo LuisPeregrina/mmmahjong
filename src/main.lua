@@ -7,6 +7,7 @@ local render = require("render")
 local gs = {}
 
 local SCREEN = "title"
+local input_depth = 0
 local blink_time = 0
 local cam_x, cam_y = 0, 0
 local cam_target_x, cam_target_y = 0, 0
@@ -43,8 +44,12 @@ local function update_camera(dt)
 
   local board_w = 14 * conf.TILE_W + 48
   local board_h = 6 * conf.TILE_H + 48
-  cam_target_x = math.max(0, math.min(cam_target_x, board_w - vw))
-  cam_target_y = math.max(0, math.min(cam_target_y, board_h - vh))
+  local max_x = math.max(0, board_w - vw)
+  local max_y = math.max(0, board_h - vh)
+  if max_x <= 0 then cam_target_x = 0 end
+  if max_y <= 0 then cam_target_y = 0 end
+  cam_target_x = math.max(0, math.min(cam_target_x, max_x))
+  cam_target_y = math.max(0, math.min(cam_target_y, max_y))
 
   local dx = cam_target_x - cam_x
   local dy = cam_target_y - cam_y
@@ -71,6 +76,7 @@ local function reset_game_state()
   gs.history = {}
   gs.status_msg = ""
   gs.status_timer = 0
+  gs.hint_timer = nil
   gs.game_over = false
   gs.won = false
 end
@@ -86,6 +92,11 @@ local function new_game()
   gs.tiles = board.init(tiles.create_deck())
   reset_game_state()
   reset_navigation()
+  if board.no_moves_left(gs.tiles) then
+    gs.game_over = true
+    gs.won = false
+    set_status("No moves! Try shuffle", 3.0)
+  end
 end
 
 --- Configure Lutro's fixed logical framebuffer before startup callbacks.
@@ -99,7 +110,7 @@ function love.load()
   math.randomseed(os.time())
 
   love.graphics.setDefaultFilter("nearest", "nearest", 0)
-  love.graphics.setBackgroundColor(20, 30, 70, 255)
+  love.graphics.setBackgroundColor(conf.COLORS.bg)
 
   vw = love.graphics.getWidth()
   vh = love.graphics.getHeight()
@@ -130,6 +141,14 @@ function love.update(dt)
     end
   end
 
+  if gs.hint_timer and gs.hint_timer > 0 then
+    gs.hint_timer = gs.hint_timer - dt
+    if gs.hint_timer <= 0 then
+      gs.hint_timer = nil
+      cursor.clear_hint()
+    end
+  end
+
   if SCREEN == "game" then
     update_camera(dt)
   end
@@ -139,12 +158,12 @@ end
 function love.draw()
   love.graphics.clear()
   if SCREEN == "title" then
-    render.draw_center_text("MAHJONG SOLITAIRE", vh / 2 - 40, 255, 220, 80)
-    render.draw_center_text("Press X or A to start", vh / 2 + 20, 200, 200, 200)
+    render.draw_center_text("MAHJONG SOLITAIRE", vh / 2 - 40, unpack(conf.COLORS.title_text))
+    render.draw_center_text("Press X or A to start", vh / 2 + 20, unpack(conf.COLORS.title_sub))
 
     local blink = math.floor(blink_time * 2) % 2 == 0
     if blink then
-      render.draw_center_text("H - Hint  S - Shuffle  Z - Undo", vh / 2 + 50, 120, 120, 120)
+      render.draw_center_text("R1:Hint  L1:Undo  R2:Shuff  Start:Restart", vh / 2 + 50, unpack(conf.COLORS.title_hint))
     end
     return
   end
@@ -172,20 +191,53 @@ end
 
 --- Handle keyboard input for title and active game states.
 function love.keypressed(key, scode, isrepeat)
+  if input_depth > 0 then return end
+  input_depth = input_depth + 1
+
+  local function done()
+    input_depth = input_depth - 1
+  end
+
   if SCREEN == "title" then
     if key == conf.KEYS.select or key == conf.KEYS.menu then
       SCREEN = "game"
       new_game()
       play_music("game")
     end
-    return
+    done(); return
   end
 
   if gs.game_over then
     if key == conf.KEYS.select or key == conf.KEYS.menu then
       new_game()
+    elseif key == conf.KEYS.undo and #gs.history > 0 then
+      local last = gs.history[#gs.history]
+      board.restore_pair(gs.tiles, last[1], last[2])
+      gs.history[#gs.history] = nil
+      gs.pairs_removed = gs.pairs_removed - 1
+      gs.game_over = false
+      gs.won = false
+      reset_navigation()
+      set_status("Undo", 1.0)
+    elseif key == conf.KEYS.shuffle then
+      local remaining = {}
+      local types = {}
+      for i, tile in ipairs(gs.tiles) do
+        if not tile.removed then
+          remaining[#remaining + 1] = i
+          types[#types + 1] = tile.type
+        end
+      end
+      tiles.shuffle(types)
+      for index, tile_index in ipairs(remaining) do
+        gs.tiles[tile_index].type = types[index]
+      end
+      gs.game_over = false
+      gs.won = false
+      reset_navigation()
+      set_status("Shuffled!", 1.0)
     end
-    return
+    done(); return
   end
 
   if key == conf.KEYS.up then
@@ -238,7 +290,11 @@ function love.keypressed(key, scode, isrepeat)
   elseif key == conf.KEYS.hint then
     local a, b = board.find_hint(gs.tiles)
     if a then
-      cursor.set_selected(a)
+      if cursor.state == "idle" then
+        cursor.set_selected(a)
+      end
+      cursor.set_hint(b)
+      gs.hint_timer = 2.0
       set_status("Hint!", 1.5)
     else
       set_status("No hint available", 1.0)
@@ -259,6 +315,7 @@ function love.keypressed(key, scode, isrepeat)
     reset_navigation()
     set_status("Shuffled!", 1.0)
   end
+  done()
 end
 
 --- Translate Lutro gamepad buttons into keyboard actions.
@@ -270,6 +327,11 @@ function love.gamepadpressed(port, button)
   elseif button == "right" or button == conf.GPAD.right then key = conf.KEYS.right
   elseif button == "a" or button == conf.GPAD.a then key = conf.KEYS.select
   elseif button == "b" or button == conf.GPAD.b then key = conf.KEYS.cancel
+  elseif button == "start" or button == conf.GPAD.start or button == conf.GPAD.r1 then
+    key = conf.KEYS.menu
+  elseif button == conf.GPAD.l1 then key = conf.KEYS.undo
+  elseif button == conf.GPAD.l2 then key = conf.KEYS.shuffle
+  elseif button == conf.GPAD.r2 then key = conf.KEYS.hint
   end
   if key then love.keypressed(key, 0, false) end
 end
@@ -289,6 +351,7 @@ function love.serialize(size)
   for _, t in ipairs(gs.tiles) do
     out[#out + 1] = t.type .. ":" .. (t.removed and "1" or "0")
   end
+  out[#out + 1] = gs.won and "won:1" or "won:0"
   return table.concat(out, ",")
 end
 
@@ -302,19 +365,39 @@ function love.unserialize(data, size)
   new_game()
   local removed_count = 0
   local index = 0
+  local end_marker = false
   for entry in data:gmatch("[^,]+") do
-    index = index + 1
-    local tile_type, removed = entry:match("^([%a_]+):([01])$")
-    if tile_type and removed and gs.tiles[index] then
-      gs.tiles[index].type = tile_type
-      gs.tiles[index].removed = removed == "1"
-      if gs.tiles[index].removed then
-        removed_count = removed_count + 1
+    if entry == "won:1" then
+      gs.won = true
+      gs.game_over = true
+      end_marker = true
+    elseif entry == "won:0" then
+      gs.won = false
+      gs.game_over = false
+      end_marker = true
+    else
+      index = index + 1
+      local tile_type, removed = entry:match("^([%a_]+):([01])$")
+      if tile_type and removed and gs.tiles[index] then
+        gs.tiles[index].type = tile_type
+        gs.tiles[index].removed = removed == "1"
+        if gs.tiles[index].removed then
+          removed_count = removed_count + 1
+        end
       end
     end
   end
   gs.pairs_removed = removed_count / 2
   SCREEN = "game"
+  if not end_marker then
+    if board.all_cleared(gs.tiles) then
+      gs.won = true
+      gs.game_over = true
+    elseif board.no_moves_left(gs.tiles) then
+      gs.game_over = true
+      gs.won = false
+    end
+  end
   reset_navigation()
   play_music("game")
 end
